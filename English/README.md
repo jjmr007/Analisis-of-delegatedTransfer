@@ -1,4 +1,4 @@
-## An Analisis of delegatedTransfer Function and its Advantages over approve Standard Function
+## An Analisis of **_delegatedTransfer_** Function and its Advantages over **_approve_** Standard Function
 
 A function with the strategy of doing transfer of funds with delegation by the means of signatures, as a possibility and a good idea has been around [*since some time ago*](https://hackernoon.com/you-dont-need-ether-to-transfer-tokens-f3ae373606e1). But concerning stable coins the first team I have notice to have implemented such idea on production is [STASIS-EURS](https://stasis.net/). Let's see what practical uses this new tool may have.  
 
