@@ -80,7 +80,7 @@ The nonce is a security element that ECDSA signatures require to prevent forgery
  
  ```
  
-Finally, what **_delegatedTransfer_** does is verify how many funds the signatory of the message has (the address that originated the signature v, r, s) and confirm that the nonce approved by the signature corresponds to the internal nonce of the contract. In the case of EURSToken, other conditions pertaining to that contract are verified, such as checking that the signatory is not on any AML "*blacklist*" or if the contract is not paused.
+Finally, what **_delegatedTransfer_** does is verify how many funds the signatory of the message has (the address that originated the signature v, r, s) and confirm that the nonce approved by the signature corresponds to the internal nonce of the signatory's address in the contract. In the case of EURSToken, other conditions pertaining to that contract are verified, such as checking that the signatory is not on any AML "*blacklist*" or if the contract is not paused.
 
 If everything is in order, it proceeds with the respective transfers of funds. The amount **_\_value_** is accredited to the account **_\_to_** and the amount **_\_fee_** is accredited to **_msg.sender_** whoever it is, and which perfectly can be a contract or an externally owned account (EOA). The balance of the signatory account is updated with the deductions of **_\_value_** and **_\_fee_**.
 
