@@ -162,7 +162,7 @@ No obstante quedan otros dos datos a indicarle a &#946;: la address _\_to_ y el 
 
 De este modo la función **_Financiar_** hace una llamada a &#946; invocando a la función **_delegatedTransfer_** con todos los parámetros que necesita para ejecutar la transferencia de "_\_value_" euros, desde el usuario haste el ICO proyecto (indicado como "1" en la figura). El segundo paso de la función **_Financiar_**, tras confirmar que la anterior llamada fue exitosa (devolviendo "verdadero"), es invocar a la función hipotética (puede llamarse de cualquier otro modo) "**_fundingMint_**" del contrato &#948;.
 
-Esta llamada ordena emitir "_\_value_" tókens &#964; a favor de la address &#949;. Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato de los ICO-Tókens, en donde se autorizan a determinados contratos a dar ordenes de acuñación al contrato del ICO-Tóken. Algo como: `mapping (address => bool) internal autorizados;` que le diga a &#948; que "autorizados(&#945;) = true", y que si se le ordena desde este **_msg.sender_** emitir (**_mint_**) _\_value_ tokens a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
+Esta llamada ordena emitir "_\_value_" tókens &#964; a favor de la address &#949;. Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato de los ICO-Tókens, en donde se autorizan a determinados contratos a dar ordenes de acuñación al contrato del ICO-Tóken. Algo como: `mapping (address => bool) internal autorizados;` que le diga a &#948; que "autorizados(&#945;) = true", y que si se le ordena desde este "**_msg.sender_**" emitir (_mint_) "_\_value_" tokens (&#964;) a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
 
 Pero surge la incógnita de quién puede tener autoridad para indicarle al ICO-Tóken que cierta address &#945; debe arrojar "verdadero" en el mapa "autorizados". Si asumimos que el proyecto ICO será manejado por un sistema de gobernanza distribuida como lo sugiere el modelo de los **_[DAICO's](https://ethresear.ch/t/explanation-of-daicos/465)_**, entonces el ICO proyecto puede tener unos parámetros con valores iniciales, que a partir del momento que se reciba una cantidad minima de financiamiento, los patrocinadores que han financiado el proyecto empiezan a controlar, mediante un contrato de gobernanza no indicado en la figura.
 
@@ -171,3 +171,34 @@ Estas variables, como se indica en la figura son la dirección del administrador
 Otra de las cosas que se podrían decidir, sería la admisión de nuevos patrocinadores o de mas fondos para el proyecto, como parte de una interminable lista de desiciones que los patrocinadores podrian tomar.
 
 Finalmente, en código solidity, la función **_Financiar_**, podría tener la sigiente forma:
+
+```solidity
+
+    function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
+        
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, address(this), _value, 0, _nonce, _v, _r, _s));
+    require(success, "saldo insuficiente");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de delegacion. el contrato retorno falso.");
+    }
+    
+    (success, data) = 
+    ICO_Token.call(abi.encodeWithSelector(0x1354714a /* fundingMint */, _value, address(msg.sender)));
+    require(success, "problemas de autorizacion");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de delegacion. el contrato retorno falso.");
+    }
+    
+        
+    }
+
+```
