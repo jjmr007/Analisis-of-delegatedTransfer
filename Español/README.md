@@ -152,4 +152,10 @@ Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este p
 
 ![Patrocinando un ICO](ICO_Patrocinio.PNG)
 
-En la imagen se han indicado las direcciones o addresses de tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección &#945;. La address del usuario (una EOA): &#949; , y las de EURS (STASIS): &#946; y la del ERC20 que provee los ICO-Tókens: &#948;.
+En la imagen se han indicado las direcciones o addresses tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección &#945;. La address del usuario (una EOA): &#949;, para EURS (STASIS): &#946; y la del ERC20 que provee los ICO-Tókens: &#948;. Asi mismo se indica como símbolo del tóken del proyecto, la letra &#964;.
+
+El usuario &#949; hace una llamada al ICO proyecto &#945;, mediante la función hipotética "**_Financiar_**". Esta función debe pedir como argumentos la firma (los trres elementos r, s y v) del usuario autorizando la movilización de sus euros digitales, manejados por &#946;, la cual debe calcularse en un proceso privado, como una calculadora o una aplicación local. También debe pedir como argumentos la cantidad de fondos en euros que el usuario pretende aportar como patrocinio al proyecto.
+
+Otro dato que, por simplicidad supondremos que provee el usuario es el número "**_nonce_**" interno que tiene asociada su address &#949; en el contrato &#946;. En realidad el ICO proyecto puede consultar perfectamente este dato, haciendo una invocación en el contrato &#946; de la función "nonce(&#949;)". Pero esto tendría un costo en gasolina adicional, lo cual por otro lado le saldrá gratis al usuario, ya que se trata de una función "*public view*".
+
+
