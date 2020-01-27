@@ -148,6 +148,6 @@ Proveer fondos para una campaña de colecta para la promoción de un proyecto, p
 
 Vamos a suponer para este caso, una sencilla promesa: emitir una cierta cantidad de tókens ERC20 a favor del usuario inversionista, los que llamaremos los "ICO-Tókens". Estos tókens estarán relacionados con el proyecto que la colecta pretende financiar, y perfectamente el ICO proyecto y el contrato ERC20 de los ICO-Tókens, pueden perfectamente ser un solo contrato inteligente, pero para mantener las cosas simples para esta explicación los supondremos por separado.
 
-Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este proyecto, son euros digitales o los "**_[EURS-Tókens](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**".
+Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este proyecto, son euros digitales o los "**_[EURS-Tókens](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**", provenientes del contrato que llamaremos "EURS (STASIS)":
 
 ![Patrocinando un ICO](ICO_Patrocinio.PNG)
