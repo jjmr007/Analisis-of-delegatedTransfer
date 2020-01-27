@@ -174,10 +174,11 @@ Finalmente, en código solidity, la función **_Financiar_**, podría tener la s
 
 ```solidity
 
-    function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
+function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
         
     (bool success, bytes memory data) = 
-    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, address(this), _value, 0, _nonce, _v, _r, _s));
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
+    address(this), _value, 0, _nonce, _v, _r, _s));
     require(success, "saldo insuficiente");
         
     // el contrato debe retornar verdadero.
