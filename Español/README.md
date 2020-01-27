@@ -141,3 +141,13 @@ A diferencia de esto, **_delegatedTransfer_** es una función segura de delegaci
  - **N° 3**: **Depósitos en Garantía no Custodiados o "_Escrows_"**. Finalmente, un uso del cual sacaría exelente provecho el mercado en cualquier ramo de actividad comercial sería la posibilidad de colocar en un depósito no custodiado, el pago por cualquier concepto de compra o intercambio, y permitir que cualquier disputa sea resuelta por un determinado agente o agentes de confianza o si el estado del arte lo permite en un futuro próximo, un oráculo totalmente desconfiable. 
 
 **iv.- Estrategias de Programación para Aprovechar cada Caso de Uso**. A continuación vamos a revisar a nivel de código como pueden programarse las funciones que permitan a un contrato inteligente aprovechar las bondades de **_delegatedTransfer_**.
+
+#### Caso N° 1: Financiando un **_[ICO](https://en.wikipedia.org/wiki/Initial_coin_offering)_**
+
+Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento de recibirse los fondos de un cierto financiamiento (es decir, en la misma transacción), eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
+
+Vamos a suponer para este caso, una sencilla promesa: emitir una cierta cantidad de tókens ERC20 a favor del usuario inversionista, los que llamaremos los "ICO-Tókens". Estos tókens estarán relacionados con el proyecto que la colecta pretende financiar, y perfectamente el ICO proyecto y el contrato ERC20 de los ICO-Tókens, pueden perfectamente ser un solo contrato inteligente, pero para mantener las cosas simples para esta explicación los supondremos por separado.
+
+Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este proyecto, son euros digitales o los "**_[EURS-Tókens](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**".
+
+![Patrocinando un ICO](ICO_Patrocinio.PNG)
