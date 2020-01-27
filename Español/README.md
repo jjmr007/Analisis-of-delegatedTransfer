@@ -174,7 +174,7 @@ Finalmente, en código solidity, la función **_Financiar_**, podría tener la s
 
 ```solidity
 
-function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
+function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
         
     (bool success, bytes memory data) = 
     EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
