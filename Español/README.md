@@ -152,4 +152,4 @@ Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este p
 
 ![Patrocinando un ICO](ICO_Patrocinio.PNG)
 
-En la imagen se han indicado las direcciones o addresses de tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección &#955;.
+En la imagen se han indicado las direcciones o addresses de tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección &#945;. La address del usuario (una EOA): &#949; , y las de EURS (STASIS): &#946; y la del ERC20 que provee los ICO-Tókens: &#948;.
