@@ -212,6 +212,7 @@ En donde el constructor define las direcciones de los contratos EURS (&#946;) e 
 
     address public EURS;
     address public ICO_Token;
+    event Inversion(address _investor, uint256 _cantidad);
     
     constructor (address EURStoken, address ICO) public {
         
@@ -219,6 +220,5 @@ En donde el constructor define las direcciones de los contratos EURS (&#946;) e 
         ICO_Token   = ICO;
         
     }
-
 ```
 
