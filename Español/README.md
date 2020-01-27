@@ -151,3 +151,5 @@ Vamos a suponer para este caso, una sencilla promesa: emitir una cierta cantidad
 Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este proyecto, son euros digitales o los "**_[EURS-Tókens](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**", provenientes del contrato que llamaremos "EURS (STASIS)":
 
 ![Patrocinando un ICO](ICO_Patrocinio.PNG)
+
+En la imagen se han indicado las direcciones o addresses de tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección &#955;.
