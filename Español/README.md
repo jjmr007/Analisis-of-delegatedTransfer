@@ -198,14 +198,17 @@ function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
       success = abi.decode(data, (bool));
       require(success, "problemas de delegacion. el contrato retorno falso.");
     }
+
+    emit Inversion(address(msg.sender), _value);
     
-        
+    return true;
+         
     }
 
 ```
 En donde el constructor define las direcciones de los contratos EURS (&#946;) e ICO_Token (&#948;) con los que el ICO proyecto (&#945;) se va a coimunicar:
 
-```solidiy
+```solidity
 
     address public EURS;
     address public ICO_Token;
