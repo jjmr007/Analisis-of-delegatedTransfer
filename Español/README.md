@@ -196,7 +196,7 @@ function fincnaiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
     if (data.length > 0) {
       require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
       success = abi.decode(data, (bool));
-      require(success, "problemas de delegacion. el contrato retorno falso.");
+      require(success, "el contrato retorno falso.");
     }
 
     emit Inversion(address(msg.sender), _value);
