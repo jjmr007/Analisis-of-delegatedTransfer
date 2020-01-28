@@ -311,17 +311,19 @@ Como comentario final para este punto abordaremos los cambios que requeriría la
 
 ![Patrocinando con Delegación](ICO_Delegado_.PNG)
 
-En la figura 2, se observa que ahora la función **_Financiar_** debe hacer 3 llamadas, debe ordenar la transferencia delegada de fondos (indicada como "1") llamando al contrato **&#946;**, pero en esta invocación, incidentalmente al contrato **&#945;** le van a entregar la comisión de la transacción. El usuario inversionista esta por ende transfiriendo en total _\_value_ + _\_fee_.
+En la figura 2, se observa que ahora la función **_Financiar_** debe hacer 3 llamadas, debe ordenar la transferencia delegada de fondos (indicada como "1") llamando al contrato **&#946;**, pero en esta invocación, incidentalmente al contrato **&#945;** le van a entregar la comisión de la transacción. El usuario inversionista (**&#949;**) esta por ende transfiriendo a **&#945;** en total _\_value_ + _\_fee_.
 
-Esto sucede porque **_delegatedTransfer_** está configurado para enviar el importe de _\_fee_ monedas al "**_msg.sender_**", que en este caso es el contrato **&#945;**.
+Esto sucede porque la función **_delegatedTransfer_** está configurada para enviar el importe de _\_fee_ monedas al "**_msg.sender_**", que en este caso es el contrato **&#945;**.
 
-Luego, **_Financiar_** hace su llamada a **&#948;** contra la función **_fundingMint_** para acuñar los tokens a favor del inversionista (indicado como "2") y finalmente transferirle al delegado su comisión mediante otra llamada al contrato **&#946;** contra la función **_transfer_** (indicado como "3"), la cual puede ahora hacer el contrato, pues ya las monedas están en su poder.
+Luego, **_Financiar_** hace su llamada a **&#948;** contra la función **_fundingMint_** para acuñar los tokens a favor del inversionista (indicado como "2") y finalmente le transfiere al delegado su comisión mediante otra llamada al contrato **&#946;** contra la función **_transfer_** (indicado como "3"), lo cual puede ahora hacer el contrato sin problema, pues ya las monedas están en su poder.
 
-Pero hay unos detalles inconclusos que deberán incorporarse al codigo solidity de la función **_Financiar_**: ahora, se debe hacer una deducción de quién es el usuario inversionista para hacerle el envío de los tókens **&#964;**, ya que el "**_msg.sender_**" que llama al ICO proyecto, es ahora el delegado. Esto puede hacerse añadiendo al comienzo de la función la instrucción:
+Pero hay unos detalles inconclusos que deberán incorporarse al codigo solidity de la función **_Financiar_**, para dar cabida a un delegado: ahora, se debe hacer una deducción de quién es el usuario inversionista para hacerle el envío de los tókens **&#964;**, ya que el "**_msg.sender_**" que llama al ICO proyecto, es ahora el delegado. Esto puede hacerse añadiendo al comienzo de la función la instrucción:
 
 ```solidity
-        Signatario = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
+Signatario = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
 ```
+
+Para recuperar cual es la address **&#949;** de quien ha generado la firma (v, r, s).
 
 Adicionalmente debe admitirse en los argumentos a _\_fee_:
 
