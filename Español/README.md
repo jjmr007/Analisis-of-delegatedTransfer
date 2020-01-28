@@ -14,7 +14,7 @@ Dado que este tema se desvía ya del objetivo de este análisis de las estrategi
 
 **i.- Cómo funciona _delegatedTransfer_**. El código solidity de esta función es:
 
-```js
+```solidity
 
 function delegatedTransfer (
     address _to, uint256 _value, uint256 _fee,
@@ -72,7 +72,7 @@ La función toma siete (7) parámetros, de los cuales sólo cuatro (4) de ellos 
  **\_nonce** (**_uint256_**): Numero criptográfico de uso único. <br>
 El nonce es un elemento de seguridad que requieren las firmas ECDSA para prevenir ataques de falsificación. Para este fin el contrato que implementa **_delegatedTransfer_** debe también implementar un mapa que lleva la cuenta de los nonces internos para las addresses que utilizan el contrato. En el caso de EURSToken, este mapa es una variable interna (**_nonces_**) pero es consultable públicamente mediante la función:
  
- ```js
+ ```solidity
  
  function nonce (address _owner) public view delegatable returns (uint256) {
     return nonces [_owner];
@@ -87,7 +87,7 @@ Si todo está en orden, se procede con las respectivas transferencias de fondos.
 
 **ii.- Por qué la función "*approve*" no funciona pero _delegatedTransfer_ sí lo hace**. De acuerdo al [estándar ERC20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) la [configuración recomendada](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol) para la función **_approve_** es:
 
-```js
+```solidity
 
 function approve(address spender, uint256 amount) public returns (bool) {
         _approve(_msgSender(), spender, amount);
@@ -98,7 +98,7 @@ function approve(address spender, uint256 amount) public returns (bool) {
 
 donde 
 
-```js
+```solidity
 
 function _approve(address owner, address spender, uint256 amount) internal {
         require(owner != address(0), "ERC20: approve from the zero address");
@@ -112,13 +112,13 @@ function _approve(address owner, address spender, uint256 amount) internal {
 
 por otro lado, *\_allowances* es un mapa que registra autorizaciones o delegaciones de fondos:
 
-```js
+```solidity
 mapping (address => mapping (address => uint256)) private _allowances;
 ```
 
 y \_msgSender() es una función que identifica quién esta invocando al contrato:
 
-```js
+```solidity
 
     function _msgSender() internal view returns (address payable) {
         return msg.sender;
@@ -152,7 +152,7 @@ Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este p
 
 ![Patrocinando un ICO](ICO_Patrocinio.PNG)
 
-En la imagen se han indicado las direcciones o addresses tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección **&#945;**. La address del usuario (una EOA): **&#949;**, para EURS (STASIS): **&#946;** y la del ERC20 que provee los ICO-Tókens: **&#948;**. Asi mismo se indica como símbolo del tóken del proyecto, la letra **&#964;**.
+En la figura 1 se han indicado las direcciones o addresses tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección **&#945;**. La address del usuario (una EOA): **&#949;**, para EURS (STASIS): **&#946;** y la del ERC20 que provee los ICO-Tókens: **&#948;**. Asi mismo se indica como símbolo del tóken del proyecto, la letra **&#964;**.
 
 El usuario **&#949;** hace una llamada al ICO proyecto **&#945;**, mediante la función hipotética "**_Financiar_**". Esta función debe pedir como argumentos la firma (los tres elementos r, s y v) del usuario autorizando la movilización de sus euros digitales, manejados por **&#946;**, la cual debe calcularse en un proceso privado, como una calculadora o una aplicación local. También debe pedir como argumento la cantidad de fondos en euros que el usuario pretende aportar como patrocinio al proyecto. Esto le dice a **&#946;** el parámetro "_\_value_".
 
@@ -160,13 +160,13 @@ Otro dato que, por simplicidad supondremos que provee el usuario o la interfaz d
 
 No obstante quedan otros dos datos a indicarle a **&#946;**: la address _\_to_ y el valor numerico _\_fee_. Dado que no estamos asumiendo la necesidad de un delegado, el contrato mismo puede asumir un valor nulo para _\_fee_ y el valor _\_to_ ya lo conoce **&#945;**: es su propia dirección **&#945;**, que en solidty puede invocarse mediante el comando "`this`".
 
-De este modo la función **_Financiar_** hace una llamada a **&#946;** invocando a la función **_delegatedTransfer_** con todos los parámetros que necesita para ejecutar la transferencia de "_\_value_" euros, desde el usuario haste el ICO proyecto (indicado como "1" en la figura). El segundo paso de la función **_Financiar_**, tras confirmar que la anterior llamada fue exitosa (devolviendo "verdadero"), es invocar a la función hipotética (puede llamarse de cualquier otro modo) "**_fundingMint_**" del contrato **&#948;**.
+De este modo la función **_Financiar_** hace una llamada a **&#946;** invocando a la función **_delegatedTransfer_** con todos los parámetros que necesita para ejecutar la transferencia de "_\_value_" euros, desde el usuario hasta el ICO proyecto (indicado como "1" en la figura). El segundo paso de la función **_Financiar_**, tras confirmar que la anterior llamada fue exitosa (devolviendo "verdadero"), es invocar a la función hipotética (puede llamarse de cualquier otro modo) "**_fundingMint_**" del contrato **&#948;**.
 
-Esta llamada ordena emitir "_\_value_" tókens **&#964;** a favor de la address **&#949;**. Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato del ICO-Tóken, en donde se autorizan a determinados contratos a dar ordenes de acuñación al referido contrato ICO-Tóken. Algo como: `mapping (address => bool) internal autorizados;` que le diga a **&#948;** que "autorizados(**&#945;**) = true", y que si se le ordena desde este "**_msg.sender_** == **&#945;**" emitir (_mint_) una cantidad de "_\_value_" tokens (**&#964;**) a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
+Esta llamada ordena emitir una suma de "_\_value_" tókens **&#964;** a favor de la address **&#949;** (indicado como "2" en la figura). Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato del ICO-Tóken, en donde se autorizan a determinados contratos a dar ordenes de acuñación al referido contrato ICO-Tóken. Algo como: `mapping (address => bool) internal autorizados;` que le diga a **&#948;** que "autorizados(**&#945;**) = true", y que si se le ordena desde este "**_msg.sender_** == **&#945;**" emitir (_mint_) una cantidad de "_\_value_" tokens (**&#964;**) a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
 
 Pero surge la incógnita de quién puede tener autoridad para indicarle al ICO-Tóken que cierta address **&#945;** puede arrojar o no "verdadero" en el mapa "autorizados". Si asumimos que el proyecto ICO será manejado por un sistema de gobernanza distribuida como lo sugiere el modelo de los **_[DAICO's](https://ethresear.ch/t/explanation-of-daicos/465)_**, entonces el ICO proyecto puede tener unos parámetros con valores iniciales, que a partir del momento que se reciba una cantidad minima de financiamiento, los patrocinadores que han financiado el proyecto empiezan a controlar, y pueden hacerlo mediante un contrato de gobernanza no indicado en la figura.
 
-Estas variables, como se indica en la figura son la dirección del administrador del contrato "_a_" y el caudal de fondos que este administrador estará autorizado a retirar semanalmente, es decir "_Q_". Si a los patrocinadores no les gusta como este administrador está dirigiendo el proyecto, pueden por votación setear de regreso a _Q_ al valor cero y rescatar los fondos que aún queden en el ICO proyecto.
+Estas variables, como se indica en la figura 1 son la dirección del administrador del contrato "_a_" y el caudal de fondos que este administrador estará autorizado a retirar semanalmente, es decir "_Q_". Si a los patrocinadores no les gusta como este administrador está dirigiendo el proyecto, pueden por votación setear de regreso a _Q_ al valor cero y rescatar los fondos que aún queden en el ICO proyecto.
 
 Otra de las cosas que se podrían decidir, sería la admisión de nuevos patrocinadores o de mas fondos para el proyecto, como parte de una interminable lista de desiciones que los patrocinadores podrian tomar.
 
@@ -175,7 +175,9 @@ Finalmente, en código solidity, la función **_Financiar_**, podría tener la s
 ```solidity
 
 function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
-        
+    
+    // Llamada o paso Nro "1" :
+    
     (bool success, bytes memory data) = 
     EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
     address(this), _value, 0, _nonce, _v, _r, _s));
@@ -187,6 +189,8 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
       success = abi.decode(data, (bool));
       require(success, "problemas de delegacion. el contrato retorno falso.");
     }
+    
+    // Llamada o paso Nro "2" :
     
     (success, data) = 
     ICO_Token.call(abi.encodeWithSelector(0x1354714a /* fundingMint */, _value, address(msg.sender)));
@@ -206,7 +210,7 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
     }
 
 ```
-En donde el constructor define las direcciones de los contratos EURS (&#946;) e ICO_Token (&#948;) con los que el ICO proyecto (&#945;) se va a coimunicar:
+En donde el constructor define las direcciones de los contratos EURS (**&#946;**) e ICO_Token (**&#948;**) con los que el ICO proyecto (**&#945;**) se va a coimunicar:
 
 ```solidity
 
