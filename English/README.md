@@ -314,7 +314,7 @@ In Figure 2, it is observed that now the **_Funding_** function must make 3 call
 
 This happens because the **_delegatedTransfer_** function is configured to send the amount of _\_fee_ coins to the "**_msg.sender_**", which in this case is the contract **α**.
 
-Then, Funding makes a call to **δ** against the **_fundingMint_** function to mint the tokens in favor of the investor (indicated as "2") and finally transfers the fee to the relayer through another call to the contract **β** against the **_transfer_** function (indicated as "3 "), which can now make the contract without problem, since the coins are already in their possession.
+Then, **_Funding_** makes a call to **δ** against the **_fundingMint_** function to mint the tokens in favor of the investor (indicated as "2") and finally transfers the fee to the relayer through another call to the contract **β** against the **_transfer_** function (indicated as "3 "), which can now execute the contract without problem, since the coins are already in their possession.
 
 But there are some unfinished details that must be incorporated into the solidity code of the **_Funding_** function, to fit the relayer: now, a calculation must be made about of who the investor user is in order to send to him the **τ** tokens, since the "**_msg .sender_**" that calls the ICO project, is now the relayer. This can be done by adding at the beginning of the function the instruction:
 
