@@ -150,7 +150,7 @@ Vamos a suponer para este caso, una sencilla promesa: la de emitir una cierta ca
 
 Ahora vamos a suponer, que los fondos que se van a aceptar para financiar este proyecto, son euros digitales o los "**_[EURS-Tókens](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**", provenientes del contrato que llamaremos "EURS (STASIS)":
 
-![Patrocinando un ICO](ICO_Patrocinio.PNG)
+![Patrocinando un ICO](ICO_Patrocinio_.PNG)
 
 En la figura 1 se han indicado las direcciones o addresses tanto de usuario(s) como de los contratos, con letras griegas. Por ejemplo el ICO proyecto tiene dirección **&#945;**. La address del usuario (una EOA): **&#949;**, para EURS (STASIS): **&#946;** y la del ERC20 que provee los ICO-Tókens: **&#948;**. Asi mismo se indica como símbolo del tóken del proyecto, la letra **&#964;**.
 
