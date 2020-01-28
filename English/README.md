@@ -237,3 +237,68 @@ The function code, which in the case of **_delegatedTransfer_** is `0x8c2f634a`,
 >web3.eth.abi.encodeFunctionSignature('delegatedTransfer(address, uint256, uint256, uint256, uint8, bytes32, bytes32)')
 ```
 
+Avoiding leaving spaces, except between the arguments of the types of function variables. And in the case of the function **_fundingMint_**, the code `0x1354714a` is obtained with the command:
+
+```cmd
+>web3.eth.abi.encodeFunctionSignature('fundingMint(uint256, address)')
+```
+
+The latter deserves an explanation: What form does `fundingMint` have to take? For this, the following code in solidity is suggested, a bald representation of the ICO-Token contract:
+
+```solidity
+
+pragma solidity ^0.5.16;
+
+import "./ERC20_tipical.sol";
+
+contract Token is ERC20 {
+    
+    uint256 public totalSupply;
+    mapping (address => uint)  public balanceOf;
+    
+    
+    mapping (address => bool) internal authorized;
+    event Authorized (address _conTract, bool _inclusion);
+    address internal Admin;     // contract's administrator
+    event Transfer(address _from, address _to, uint _amount);
+    
+    constructor() public {
+        
+        Admin = msg.sender;
+        
+    }
+    
+    modifier onlyAdmin {
+        
+        require (msg.sender == Admin);
+        _;
+        
+    }
+    
+    modifier onlyAuth {
+        
+        require (authorized[msg.sender]);
+        _;
+        
+    }
+    
+    function authorize (address _a, bool _w) public onlyAdmin returns (bool) {
+        
+        authorized[_a] = _w;    // it set the boolen vaule regardless whether _w is true or false
+        emit Authorized(_a, _w);
+        return true;
+        
+    }
+    
+    function fundingMint (uint256 _value, address _investor) public onlyAuth returns (bool) {
+        
+        balanceOf[_investor] += _value;
+        totalSupply          += _value;
+        emit Transfer(address(0), _investor, _value);
+        
+    }
+
+}
+
+```
+
