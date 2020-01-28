@@ -227,3 +227,13 @@ Where the constructor defines the addresses of EURS (**β**) and ICO_Token (**δ
     }
 ```
 
+A brief explanation of what this function does is simply that it performs two calls to two different contracts to execute two functions in a single transaction. And in this case these calls are made using the command [`<address> .call (bytes memory)`](https://solidity.readthedocs.io/en/v0.5.3/units-and-global-variables.html ? # members-of-address-types). This powerful instruction executes the low level command `CALL` in the ethereum virtual machine. As arguments this function takes from memory a data stream, called "payload" and as a result it returns two parameters: `(bool, bytes memory)`. A Boolean value indicating whether or not the call was successful and an answer data stream; The answer we expected from `CALL` invocation that returned from the external contract to the memory.
+
+In the case of `<address>.call (payload)` the data to be supplied must be encoded so that it can be read by the virtual machine. However, the data can be entered in a high-level readable format and encoded using a solidity method package called "ABI-encoding functions". And here the method [`abi.encodeWithSelector`](https://solidity.readthedocs.io/en/v0.5.3/units-and-global-variables.html?#abi-encoding-and-decoding-functions) comes into play, which includes as arguments the header or identifier of the function that we will invoke from the contract located at the address `<address>` and the types of variable that this function takes.
+
+The function code, which in the case of **_delegatedTransfer_** is `0x8c2f634a`, can be generated using the web3 package utilities, but can easily be calculated using the [remix](https://remix.ethereum.org) console , by placing the instruction:
+
+```cmd
+>web3.eth.abi.encodeFunctionSignature('delegatedTransfer(address, uint256, uint256, uint256, uint8, bytes32, bytes32)')
+```
+
