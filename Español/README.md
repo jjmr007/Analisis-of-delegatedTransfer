@@ -293,8 +293,8 @@ contract Token is ERC20 {
     
     function fundingMint (uint256 _value, address _investor) public soloAuto returns (bool) {
         
-        balanceOf[_investor] = balanceOf[_investor] + _value;
-        totalSupply    = totalSupply + _value;
+        balanceOf[_investor] += _value;
+        totalSupply          += _value;
         emit Transfer(address(0), _investor, _value);
         
     }
