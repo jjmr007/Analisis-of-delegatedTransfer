@@ -162,7 +162,9 @@ No obstante quedan otros dos datos a indicarle a **&#946;**: la address _\_to_ y
 
 De este modo la función **_Financiar_** hace una llamada a **&#946;** invocando a la función **_delegatedTransfer_** con todos los parámetros que necesita para ejecutar la transferencia de "_\_value_" euros, desde el usuario hasta el ICO proyecto (indicado como "1" en la figura). El segundo paso de la función **_Financiar_**, tras confirmar que la anterior llamada fue exitosa (devolviendo "verdadero"), es invocar a la función hipotética (puede llamarse de cualquier otro modo) "**_fundingMint_**" del contrato **&#948;**.
 
-Esta llamada ordena emitir una suma de "_\_value_" tókens **&#964;** a favor de la address **&#949;** (indicado como "2" en la figura). Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato del ICO-Tóken, en donde se autorizan a determinados contratos a dar ordenes de acuñación al referido contrato ICO-Tóken. Algo como: `mapping (address => bool) internal autorizados;` que le diga a **&#948;** que "autorizados(**&#945;**) = true", y que si se le ordena desde este "**_msg.sender_** == **&#945;**" emitir (_mint_) una cantidad de "_\_value_" tokens (**&#964;**) a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
+Esta llamada ordena emitir una suma de "_\_value_" tókens **&#964;** a favor de la address **&#949;** (indicado como "2" en la figura). Esto se puede lograr previendo el recurso de un mapeo o variable "mappings" propio del contrato del ICO-Tóken, en donde se autorizan a determinados contratos a dar ordenes de acuñación al referido contrato ICO-Tóken. 
+
+Algo como: `mapping (address => bool) internal autorizados;` que le diga a **&#948;** que "autorizados(**&#945;**) = true", y que si se le ordena desde este "**_msg.sender_** == **&#945;**" emitir (_mint_) una cantidad de "_\_value_" tokens (**&#964;**) a favor de cierto usuario, entonces esta orden puede efectuarse sin problema.
 
 Pero surge la incógnita de quién puede tener autoridad para indicarle al ICO-Tóken que cierta address **&#945;** puede arrojar o no "verdadero" en el mapa "autorizados". Si asumimos que el proyecto ICO será manejado por un sistema de gobernanza distribuida como lo sugiere el modelo de los **_[DAICO's](https://ethresear.ch/t/explanation-of-daicos/465)_**, entonces el ICO proyecto puede tener unos parámetros con valores iniciales, que a partir del momento que se reciba una cantidad minima de financiamiento, los patrocinadores que han financiado el proyecto empiezan a controlar, y pueden hacerlo mediante un contrato de gobernanza no indicado en la figura.
 
@@ -225,4 +227,109 @@ En donde el constructor define las direcciones de los contratos EURS (**&#946;**
         
     }
 ```
+
+Una breve explicación de lo que hace esta función, es simplemente que ocurren dos llamadas a dos contratos diferentes para ejecutar dos funciones en una sola transacción. Y en este caso se efectuan estas llamadas mediante el comando [`<address>.call(bytes memory)`](https://solidity.readthedocs.io/en/v0.5.3/units-and-global-variables.html?#members-of-address-types). Esta poderosa instrucción ejecuta el comando de bajo nivel `CALL` en la máquina virtual de ethereum. Como argumentos esta función toma un tren de datos, denomindao "payload" de la memoria y como resultado devuelve dos parámetros: `(bool, bytes memory)`. Un valor booleano indicando si la llamada tuvo o no éxito y otro tren de datos; la respuesta que la función que acabamos de invocar nos ha devuelto del contrato externo hacia la memoria.
+
+En el caso de `<address>.call(payload)` los datos a suministrar, deben estar codificados de manera que puedan ser leídos por la máquina virtual. Sin embargo los datos pueden ingresar en un formato legible de alto nivel y codificarse mediante un paquete de métodos de solisity llamado "ABI-encoding functions". Y allí entra en escena el método [`abi.encodeWithSelector`](https://solidity.readthedocs.io/en/v0.5.3/units-and-global-variables.html?#abi-encoding-and-decoding-functions), que recoge como argumentos el encabezado o identificador de la función que invocaremos del contrato ubicado en la address `<address>` y los tipos de variable que toma esta función.
+
+El codigo de la función, que en el caso de **_delegatedTransfer_** es `0x8c2f634a` puede generarse mediante las utilerías del paquete web3, pero que fácilmente puede calcularse utilizando la cónsola de [remix](https://remix.ethereum.org), al colocar la instrucción:
+
+```cmd
+>web3.eth.abi.encodeFunctionSignature('delegatedTransfer(address, uint256, uint256, uint256, uint8, bytes32, bytes32)')
+```
+
+Evitando dejar espacios, excepto entre la designación de los tipos de variables de la función. Y en el caso de la función **_fundingMint_**, el código `0x1354714a` se obtiene con el comando:
+
+```cmd
+>web3.eth.abi.encodeFunctionSignature('fundingMint(uint256, address)')
+```
+
+Esto ultimo merece una explicación: ¿Qué forma ha de tomar `fundingMint`? Para ello se sugiere el siguiente codigo en solidity, una escueta representación del contrato del ICO-Tóken:
+
+```solidity
+
+pragma solidity ^0.5.16;
+
+import "./ERC20_tipico.sol";
+
+contract Token is ERC20 {
+    
+    uint256 public totalSupply;
+    mapping (address => uint)  public balanceOf;
+    
+    
+    mapping (address => bool) internal autorizados;
+    event Autorizado (address _contrato, bool _inclusion);
+    address internal Admin;     // administrador del contrato
+    event Transfer(address _desde, address _hacia, uint _cuanto);
+    
+    constructor() public {
+        
+        Admin = msg.sender;
+        
+    }
+    
+    modifier soloAdmin {
+        
+        require (msg.sender == Admin);
+        _;
+        
+    }
+    
+    modifier soloAuto {
+        
+        require (autorizados[msg.sender]);
+        _;
+        
+    }
+    
+    function autorizar (address _a, bool _w) public soloAdmin returns (bool) {
+        
+        autorizados[_a] = _w;
+        emit Autorizado(_a, _w);
+        return true;
+        
+    }
+    
+    function fundingMint (uint256 _value, address _investor) public soloAuto returns (bool) {
+        
+        balanceOf[_investor] = balanceOf[_investor] + _value;
+        totalSupply    = totalSupply + _value;
+        emit Transfer(address(0), _investor, _value);
+        
+    }
+
+}
+
+```
+
+En donde por comodidad y brevedad, se da a entender que el archivo `ERC20_tipico.sol` contiene las especificaciones estándar de un tóken ERC20, aunque no se exhibe la función "**_delegatedTransfer_**" de este contrato que idóneamente emula a la de EURS-Tóken y que por simplicidad supondremos, se encuentra tambien declarada en `ERC20_tipico.sol`.
+
+En el contrato anterior `Token`, se ha declarado el mapeo que autoriza direcciones de contratos para acuñar tókens. Se hace referencia al administrador del contrato y a los eventos de autorización y transferencia. La función **_fundingMint_** viene con el modificador `soloAuto` para restringir el acceso solo a las ordenes que nacen de las llamadas de contratos autorizados: `autorizados[msg.sender]`.
+
+Como comentario final para este punto abordaremos los cambios que requeriría la función **_Financiar_** si se acepta a un delegado como mediador para que el inversionista no tenga que "ensuciarse las manos" con el tema de la gasolina.
+
+![Patrocinando con Delegación](ICO_Delegado_.PNG)
+
+En la figura 2, se observa que ahora la función **_Financiar_** debe hacer 3 llamadas, debe ordenar la transferencia delegada de fondos (indicada como "1") llamando al contrato **&#946;**, pero en esta invocación, incidentalmente al contrato **&#945;** le van a entregar la comisión de la transacción. El usuario inversionista esta por ende transfiriendo en total _\_value_ + _\_fee_.
+
+Esto sucede porque **_delegatedTransfer_** está configurado para enviar el importe de _\_fee_ monedas al "**_msg.sender_**", que en este caso es el contrato **&#945;**.
+
+Luego, **_Financiar_** hace su llamada a **&#948;** contra la función **_fundingMint_** para acuñar los tokens a favor del inversionista (indicado como "2") y finalmente transferirle al delegado su comisión mediante otra llamada al contrato **&#946;** contra la función **_transfer_** (indicado como "3"), la cual puede ahora hacer el contrato, pues ya las monedas están en su poder.
+
+Pero hay unos detalles inconclusos que deberán incorporarse al codigo solidity de la función **_Financiar_**: ahora, se debe hacer una deducción de quién es el usuario inversionista para hacerle el envío de los tókens **&#964;**, ya que el "**_msg.sender_**" que llama al ICO proyecto, es ahora el delegado. Esto puede hacerse añadiendo al comienzo de la función la instrucción:
+
+```solidity
+        Signatario = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
+```
+
+Adicionalmente debe admitirse en los argumentos a _\_fee_:
+
+```solidity
+function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
+
+}
+```
+
+Y hacer los últimos arreglos pertinentes que se dejan como ejercicio al lector.
 
