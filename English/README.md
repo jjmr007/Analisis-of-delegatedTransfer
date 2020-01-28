@@ -302,3 +302,9 @@ contract Token is ERC20 {
 
 ```
 
+Where for convenience and brevity, it is understood that the `ERC20_tipical.sol` file contains a description of an "ERC20" contract and all its standard specifications.
+
+In the previous contract (`Token`), the mapping that authorizes certain contracts' addresses to mint tokens has been declared. Reference is made to the contract administrator and the authorization and transfer events. The function **_fundingMint_** comes with the `onlyAuth` modifier to restrict access only to orders that are originated from the calls of authorized contracts: `authorized[msg.sender] `.
+
+As a final comment for this point, we will address the changes that would require the function **_Funding_** if a relayer is accepted so that the investor does not have to "get their hands dirty" with the issue of gas.
+
