@@ -14,7 +14,7 @@ Since this topic already deviates from the objective of this analysis of the str
 
 **i.- How _delegatedTransfer_ works**. The solidity code of this function is:
 
-```js
+```solidity
 
 function delegatedTransfer (
     address _to, uint256 _value, uint256 _fee,
@@ -72,7 +72,7 @@ The function takes seven (7) parameters, of which only four (4) of them are vari
  **\_nonce** (**_uint256_**): single use cryptographic number. <br>
 The nonce is a security element that ECDSA signatures require to prevent forgery attacks. For this purpose, the contract that implements **_delegatedTransfer_** must also implement a mapping that keeps the internal nonces account for the addresses that use this function in the contract. In the case of EURSToken, this mapping is an internal variable (**_nonces_**) but it is publicly available using the function:
  
- ```js
+ ```solidity
  
  function nonce (address _owner) public view delegatable returns (uint256) {
     return nonces [_owner];
@@ -87,7 +87,7 @@ If everything is in order, it proceeds with the respective transfers of funds. T
 
 **ii.- Why the "*approve*" function does not work but _delegatedTransfer_ does**. According to [ERC20 standard](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) the [recommended configuration](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol) for the function **_approve_** is:
 
-```js
+```solidity
 
 function approve(address spender, uint256 amount) public returns (bool) {
         _approve(_msgSender(), spender, amount);
@@ -98,7 +98,7 @@ function approve(address spender, uint256 amount) public returns (bool) {
 
 where the \_approve function is: 
 
-```js
+```solidity
 
 function _approve(address owner, address spender, uint256 amount) internal {
         require(owner != address(0), "ERC20: approve from the zero address");
@@ -112,13 +112,13 @@ function _approve(address owner, address spender, uint256 amount) internal {
 
 by the other hand, *\_allowances* is a mapping which registers authorizations or funds delegations:
 
-```js
+```solidity
 mapping (address => mapping (address => uint256)) private _allowances;
 ```
 
 and \_msgSender() is a function that identifies who is invoking the contract:
 
-```js
+```solidity
 
     function _msgSender() internal view returns (address payable) {
         return msg.sender;
@@ -148,7 +148,6 @@ We will assume for this case, a simple promise: that of issuing a certain amount
 
 Now we are going to assume that the funds that will be accepted to finance this project are digital euros or the "**_[EURS-Token](https://etherscan.io/address/0xdb25f211ab05b1c97d595516f45794528a807ad8#code)_**", managed by the contract that we will call "EURS (STASIS)":
 
-
 ![Funding an ICO](ICO_Funding_.PNG)
 
 In figure 1 the addresses of both user(s) and contracts have been indicated, with Greek letters. For example, the ICO project has an **α** address. The user's address (an EOA): **ε**, for EURS (STASIS): **β** and that of the ERC20 that provides the ICO-Token: **δ**. Likewise, the letter **τ** is indicated as a symbol of the project's token.
@@ -172,4 +171,59 @@ These variables, as indicated in figure 1 are the address of the contract admini
 Another one of the things that could be decided would be the admission of new sponsors or more funds for the project, as part of an endless list of decisions that the sponsors could make.
 
 Finally, in solidity code, the **_Funding_** function could have the following form:
+
+```solidity
+
+function Funding (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce) external returns (bool) {
+    
+    // Call or step No "1" :
+    
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
+    address(this), _value, 0, _nonce, _v, _r, _s));
+    require(success, "insufficient balance");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "signature problems. the contract returned false.");
+    }
+    
+    // Call or step No "2" :
+    
+    (success, data) = 
+    ICO_Token.call(abi.encodeWithSelector(0x1354714a /* fundingMint */, _value, address(msg.sender)));
+    require(success, "authorization problems");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+
+    emit Inversion(address(msg.sender), _value);
+    
+    return true;
+         
+    }
+
+```
+
+Where the constructor defines the addresses of EURS (**β**) and ICO_Token (**δ**) contracts with which the ICO project (**α**) is going to communicate:
+
+```solidity
+
+    address public EURS;
+    address public ICO_Token;
+    event Invest(address _investor, uint256 _amount);
+    
+    constructor (address EURStoken, address ICO) public {
+        
+        EURS        = EURStoken;
+        ICO_Token   = ICO;
+        
+    }
+```
 
