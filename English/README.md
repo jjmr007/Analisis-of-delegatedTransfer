@@ -308,3 +308,28 @@ In the previous contract (`Token`), the mapping that authorizes certain contract
 
 As a final comment for this point, we will address the changes that would require the function **_Funding_** if a relayer is accepted so that the investor does not have to "get their hands dirty" with the issue of gas.
 
+![Funding with a Relayer](ICO_Relayer.PNG)
+
+In Figure 2, it is observed that now the Funding function must make 3 calls: it must order the delegated transfer of funds (indicated as "1") by calling the contract β, but in this invocation incidentally, the contract α will receive the transaction fee. The investing user (ε) is therefore transferring to α in total: _value + _fee.
+
+This happens because the delegatedTransfer function is configured to send the amount of _fee coins to the "msg.sender", which in this case is the contract α.
+
+Then, Funding makes a call to δ against the fundingMint function to mint the tokens in favor of the investor (indicated as "2") and finally transfers the commission to the delegate through another call to the contract β against the transfer function (indicated as "3 "), which can now make the contract without problem, since the coins are already in their possession.
+
+But there are some unfinished details that must be incorporated into the solidity code of the Funding function, to accommodate a delegate: now, a calculation must be made about of who the investor user is in order to send him the τ tokens, since the "msg .sender" that calls the ICO project, is now the delegate. This can be done by adding at the beginning of the function the instruction:
+
+```solidity
+investor = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
+```
+
+To retrieve which is the address ε of who generated the signature (v, r, s).
+
+Additionally, _fee must be admitted in the arguments:
+
+```solidity
+function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
+
+}
+```
+
+And the last pertinent arrangements that must be done are left as an exercise to the reader.
