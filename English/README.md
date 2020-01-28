@@ -316,7 +316,7 @@ This happens because the **_delegatedTransfer_** function is configured to send 
 
 Then, **_Funding_** makes a call to **δ** against the **_fundingMint_** function to mint the tokens in favor of the investor (indicated as "2") and finally transfers the fee to the relayer through another call to the contract **β** against the **_transfer_** function (indicated as "3 "), which can now execute the contract without problem, since the coins are already in their possession.
 
-But there are some unfinished details that must be incorporated into the solidity code of the **_Funding_** function, to fit the relayer: now, a calculation must be made about of who the investor user is in order to send to him the **τ** tokens, since the "**_msg .sender_**" that calls the ICO project, is now the relayer. This can be done by adding at the beginning of the function the instruction:
+But there are some unfinished details that must be incorporated into the solidity code of the **_Funding_** function, to fit in to the relayer: now, a calculation must be made about of who the investor user is in order to send to him the **τ** tokens, since the "**_msg .sender_**" that calls the ICO project, is now the relayer. This can be done by adding at the beginning of the function the instruction:
 
 ```solidity
 investor = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
