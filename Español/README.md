@@ -212,6 +212,7 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
     }
 
 ```
+
 En donde el constructor define las direcciones de los contratos EURS (**&#946;**) e ICO_Token (**&#948;**) con los que el ICO proyecto (**&#945;**) se va a coimunicar:
 
 ```solidity
