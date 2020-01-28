@@ -303,7 +303,7 @@ contract Token is ERC20 {
 
 ```
 
-En donde por comodidad y brevedad, se da a entender que el archivo `ERC20_tipico.sol` contiene una descripción del contrato "ERC20" y todas sus especificaciones estándar, incluyendo adicionalmente a la función "**_delegatedTransfer_**" que por simplicidad supondremos como una característica añadida a este estándar.
+En donde por comodidad y brevedad, se da a entender que el archivo `ERC20_tipico.sol` contiene una descripción del contrato "ERC20" y todas sus especificaciones estándar.
 
 En el contrato anterior (`Token`), se ha declarado el mapeo que autoriza direcciones de contratos para acuñar tókens. Se hace referencia al administrador del contrato y a los eventos de autorización y transferencia. La función **_fundingMint_** viene con el modificador `soloAuto` para restringir el acceso solo a las ordenes que nacen de las llamadas de contratos autorizados: `autorizados[msg.sender]`.
 
