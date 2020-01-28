@@ -336,3 +336,15 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
 
 Y hacer los últimos arreglos pertinentes que se dejan como ejercicio al lector.
 
+#### Caso N° 2: Ofuscando Fondos con Mezcladores como **_[Tornado Cash](https://github.com/tornadocash/tornado-core)_**
+
+Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
+
+
+
+#### Caso N° 3: Escrows 
+
+Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
+
+
+**v.- ¿Cómo Generar una Firma (v, r, s)?**. A continuación vamos a revisar a nivel de código como pueden programarse las funciones que permitan a un contrato inteligente aprovechar las bondades de **_delegatedTransfer_**.
