@@ -303,15 +303,15 @@ contract Token is ERC20 {
 
 ```
 
-En donde por comodidad y brevedad, se da a entender que el archivo `ERC20_tipico.sol` contiene las especificaciones estándar de un tóken ERC20, aunque no se exhibe la función "**_delegatedTransfer_**" de este contrato que idóneamente emula a la de EURS-Tóken y que por simplicidad supondremos, se encuentra tambien declarada en `ERC20_tipico.sol`.
+En donde por comodidad y brevedad, se da a entender que el archivo `ERC20_tipico.sol` contiene una descripción del contrato "ERC20" y todas sus especificaciones estándar, incluyendo adicionalmente a la función "**_delegatedTransfer_**" que por simplicidad supondremos como una característica añadida a este estándar.
 
-En el contrato anterior `Token`, se ha declarado el mapeo que autoriza direcciones de contratos para acuñar tókens. Se hace referencia al administrador del contrato y a los eventos de autorización y transferencia. La función **_fundingMint_** viene con el modificador `soloAuto` para restringir el acceso solo a las ordenes que nacen de las llamadas de contratos autorizados: `autorizados[msg.sender]`.
+En el contrato anterior (`Token`), se ha declarado el mapeo que autoriza direcciones de contratos para acuñar tókens. Se hace referencia al administrador del contrato y a los eventos de autorización y transferencia. La función **_fundingMint_** viene con el modificador `soloAuto` para restringir el acceso solo a las ordenes que nacen de las llamadas de contratos autorizados: `autorizados[msg.sender]`.
 
 Como comentario final para este punto abordaremos los cambios que requeriría la función **_Financiar_** si se acepta a un delegado como mediador para que el inversionista no tenga que "ensuciarse las manos" con el tema de la gasolina.
 
 ![Patrocinando con Delegación](ICO_Delegado_.PNG)
 
-En la figura 2, se observa que ahora la función **_Financiar_** debe hacer 3 llamadas, debe ordenar la transferencia delegada de fondos (indicada como "1") llamando al contrato **&#946;**, pero en esta invocación, incidentalmente al contrato **&#945;** le van a entregar la comisión de la transacción. El usuario inversionista (**&#949;**) esta por ende transfiriendo a **&#945;** en total _\_value_ + _\_fee_.
+En la figura 2, se observa que ahora la función **_Financiar_** debe hacer 3 llamadas: debe ordenar la transferencia delegada de fondos (indicada como "1") llamando al contrato **&#946;**, pero en esta invocación, incidentalmente al contrato **&#945;** le van a entregar la comisión de la transacción. El usuario inversionista (**&#949;**) esta por ende transfiriendo a **&#945;** en total _\_value_ + _\_fee_.
 
 Esto sucede porque la función **_delegatedTransfer_** está configurada para enviar el importe de _\_fee_ monedas al "**_msg.sender_**", que en este caso es el contrato **&#945;**.
 
