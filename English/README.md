@@ -10,7 +10,7 @@ How do we explain to the ordinary user that those dollars he wishes to send, wil
 
 This is the technological contribution of the function **_delegatedTransfer_** whose mission is to avoid the end user the need to deal with a cryptocurrency, when his field of action is concentrated in a different currency. The STASIS team developed an application, available for mobile phones with [**_Android_**](https://play.google.com/store/apps/details?id=com.stasis.stasiswallet) operating system, as well as [**_iOS_**](https://apps.apple.com/app/stasis-wallet/id1371949230) mobile phones, that allow the user to send to a *delegate* a request to mobilize funds, through a "client-server" communication channel completely apart from the blockchain (an RPC off-chain call), in order to carry out the transfer of EURS-token. This request is accompanied by a cryptographic signature [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) under the [Ethereum standard](https://ethereum.stackexchange.com/questions/64380/understanding-ethereum-signatures) comprising three parameters: two 32-byte strings called "*R*" and "*S*" and a one-byte extension number, or "*V*" parameter.<br><br>
 
-**i.- How _delegatedTransfer_ works**. The solidity code of this function is:<br><br>
+**i.- How _delegatedTransfer_ works**. The solidity code of this function is:<br>
 
 ```solidity
 
@@ -82,7 +82,7 @@ Finally, what **_delegatedTransfer_** does is verify how many funds the signator
 
 If everything is in order, it proceeds with the respective transfers of funds. The amount **_\_value_** is accredited to the account **_\_to_** and the amount **_\_fee_** is accredited to **_msg.sender_** whoever it is, and which perfectly can be a contract or an externally owned account (EOA). The balance of the signatory account is updated with the deductions of **_\_value_** and **_\_fee_**.<br><br>
 
-**ii.- Why the "*approve*" function does not work but _delegatedTransfer_ does**. According to [ERC20 standard](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) the [recommended configuration](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol) for the function **_approve_** is:<br><br>
+**ii.- Why the "*approve*" function does not work but _delegatedTransfer_ does**. According to [ERC20 standard](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) the [recommended configuration](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol) for the function **_approve_** is:<br>
 
 ```solidity
 
