@@ -332,7 +332,61 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
 }
 ```
 
-Y hacer los últimos arreglos pertinentes que se dejan como ejercicio al lector.
+Tras hacer los últimos arreglos pertinentes, la función **_Financiar_** queda del siguiente modo:
+
+```solidity
+
+function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
+    
+    address Signatario = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
+    
+    // Llamada o paso Nro "1" :
+    
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
+    address(this), _value, _fee, _nonce, _v, _r, _s));
+    require(success, "saldo insuficiente");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de delegacion. el contrato retorno falso.");
+    }
+    
+    // Llamada o paso Nro "2" :
+    
+    (success, data) = 
+    ICO_Token.call(abi.encodeWithSelector(0x1354714a /* fundingMint */, _value, Signatario));
+    require(success, "problemas de autorizacion");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "el contrato retorno falso.");
+    }
+    
+    // Llamada o paso Nro "3"
+    
+    (success, data) = 
+    EURS.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, address(msg.sender), _fee));
+    require(success, "problema desconocido");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "el contrato retorno falso.");
+    }
+
+    emit Inversion(Signatario, _value);
+    
+    return true;
+         
+    }
+
+```
 
 #### Caso N° 2: Ofuscando Fondos con Mezcladores como **_[Tornado Cash](https://github.com/tornadocash/tornado-core)_**
 
