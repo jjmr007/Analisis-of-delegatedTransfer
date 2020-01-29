@@ -144,7 +144,7 @@ A diferencia de esto, **_delegatedTransfer_** es una función segura de delegaci
 
 #### Caso N° 1: Financiando un **_[ICO](https://en.wikipedia.org/wiki/Initial_coin_offering)_**
 
-Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
+Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa. (El mecanismo estándar de `approve` + `transferFrom`, utilizado comúnmente en Dapps, como [Compound.Finance](https://app.compound.finance/) o [1inch.exchange](https://1inch.exchange/#/), requiere un poco de confianza en el software front-end, que puede cambiar sin previo aviso en cualquier momento: confiamos en que este software hará uso del activo que le acabamos de aprobar del modo que esperamos).
 
 Vamos a suponer para este caso, una sencilla promesa: la de emitir una cierta cantidad de tókens ERC20 a favor del usuario inversionista, los que llamaremos los "ICO-Tókens". Estos tókens estarán relacionados con el proyecto que la colecta pretende financiar, y perfectamente el ICO proyecto y el contrato ERC20 de los ICO-Tókens, pueden ser un solo contrato inteligente, pero para mantener las cosas simples en esta explicación los supondremos por separado.
 
@@ -347,4 +347,4 @@ Proveer fondos para una campaña de colecta para la promoción de un proyecto, p
 Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
 
 
-**v.- ¿Cómo Generar una Firma (v, r, s)?**. A continuación vamos a revisar a nivel de código como pueden programarse las funciones que permitan a un contrato inteligente aprovechar las bondades de **_delegatedTransfer_**.
+**iv.- ¿Cómo Generar una Firma (v, r, s)?**. A continuación vamos a revisar a nivel de código como pueden programarse las funciones que permitan a un contrato inteligente aprovechar las bondades de **_delegatedTransfer_**.
