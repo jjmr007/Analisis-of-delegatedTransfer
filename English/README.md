@@ -202,7 +202,7 @@ function Funding (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _non
       require(success, "the contract returned false.");
     }
 
-    emit Inversion(address(msg.sender), _value);
+    emit Invest(address(msg.sender), _value);
     
     return true;
          
@@ -326,10 +326,63 @@ To retrieve which is the address **ε** of who generated the signature (v, r, s)
 Additionally, _\_fee_ must be admitted in the arguments:
 
 ```solidity
-function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
+function Funding (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
 
 }
 ```
 
-And the last pertinent arrangements that must be done are left as an exercise to the reader.
+After making the last relevant arrangements, the **_Funding_** function is left as follows:
 
+```solidity
+
+function Funding (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _nonce, uint256 _fee) external returns (bool) {
+    
+    address investor = ecrecover(keccak256 ((abi.encodePacked( address(EURS), address(this), address(this), _value, _fee, _nonce))), v, r, s);
+    
+    // Call or step No "1" :
+    
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
+    address(this), _value, _fee, _nonce, _v, _r, _s));
+    require(success, "insufficient balance");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "signature problems. the contract returned false.");
+    }
+    
+    // Call or step No "2" :
+    
+    (success, data) = 
+    ICO_Token.call(abi.encodeWithSelector(0x1354714a /* fundingMint */, _value, investor));
+    require(success, "authorization problems");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+    
+    // Call or step No "3"
+    
+    (success, data) = 
+    EURS.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, address(msg.sender), _fee));
+    require(success, "unknown error");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+
+    emit Invest(investor, _value);
+    
+    return true;
+         
+    }
+
+```
