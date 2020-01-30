@@ -604,7 +604,9 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
 
 #### Caso N° 3: Escrows 
 
-Proveer fondos para una campaña de colecta para la promoción de un proyecto, puede realizarse mediante monedas estables a través de la mediación de un contrato. Este contrato que llamaremos el "ICO proyecto", puede ejecutar una serie de promesas, al momento (es decir, en la misma transacción) de recibirse los fondos de un cierto financiamiento, eliminando el requerimiento de la confianza para el cumplimiento de tal promesa.
+Finalmente el caso de los depósitos en garantía cuando el activo en juego son tókens estándar ERC20, sí que presenta un desafío a la técnica tradicional `approve` + `transferFrom` ya que hay en juego un asunto de confianza. Si se espera diseñar estrategias de comercio altamente independientes de la confianza, es necesario evitar el uso de la función `approve`. 
+
+
 
 
 **iv.- ¿Cómo Generar una Firma (v, r, s)?**. A continuación vamos a revisar a nivel de código como pueden programarse las funciones que permitan a un contrato inteligente aprovechar las bondades de **_delegatedTransfer_**.
