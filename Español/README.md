@@ -396,9 +396,9 @@ El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en
 
 En la actualidad el servicio de mezcla de fondos más evoluicionado, es el que ha desarrollado el equipo de [Tornado Cash](https://tornado.cash/). Para comprender los detalles profundos de como opera internamente un mezclador mediante el paradigma [ZK-SNARK](https://z.cash/technology/zksnarks/), es recomendable visitar las referencias que estos desarrolladores han publicado. Lo relevante en este analisis es comprender que un mezclador es un contrato, una especie de caja de depósito de fondos, donde cada usuario hace un deposito por cantidades predefinidas, iguales (para que sea posible ofuscar la titularidad de tales fonods), y mediante la presentación de una prueba de conocimiento nulo, hacer el retiro a favor de una cuenta virgen, sin historial que pueda rastrearse; es decir, cada usuario presenta una prueba de ser en efecto uno de los depositantes del mezclador y que sólo intenta retirar los fondos que corresponden a **_su_** depósito por una única vez, y **_sin revelar detalles de quien se trata_**.
 
-La magia de las matemáticas detrás de esta hazaña se dejan para las multiples referencias de este tema, [extremadamente extenso](https://medium.com/@VitalikButerin/zk-snarks-under-the-hood-b33151a013f6). A continuación veremos como puede mejorarse la experiencia del usuario que desea anonimizar la titularidad de su dinero, sin tener que adentrarase mucho en el conocimiento de la cadena de bloques, que es lo idóneo para fomentar un uso masivo de esta tecnoplogía.
+La magia de las matemáticas detrás de esta hazaña se dejan para las multiples referencias de este tema, [extremadamente extenso](https://medium.com/@VitalikButerin/zk-snarks-under-the-hood-b33151a013f6). A continuación veremos como puede mejorarse la experiencia del usuario que desea anonimizar la titularidad de su dinero, sin tener que adentrarase mucho en el conocimiento de la cadena de bloques, que es lo idóneo para fomentar un uso masivo de esta tecnología.
 
-Dado que la idea es comparar las ventajas de la función **_delegatedTransfer_**, vamos a comparar cómo se mejoraría el código con un mezclador para la moneda **_[EURS-Token](https://coinmarketcap.com/currencies/stasis-euro/)_**, con el codigo que requeriría la misma mejora con la nueva version de la moneda **_[Dai](https://coinmarketcap.com/currencies/multi-collateral-dai/)_**, usando la función **_permit_**.
+Dado que la idea es comparar las ventajas de la función **_delegatedTransfer_**, veremos cómo se mejoraría el código con un mezclador para la moneda **_[EURS-Token](https://coinmarketcap.com/currencies/stasis-euro/)_**, y luego con el codigo que requeriría la misma mejora con la nueva version de la moneda **_[Dai](https://coinmarketcap.com/currencies/multi-collateral-dai/)_**, usando la función **_permit_**.
 
 En primer lugar, los contratos de Tornado Cash, admiten una función de depósito que utiliza un solo argumento de entrada. Este argumento, llamado **_compromiso_**, es la imagen criptografica del secreto que identifica a cada depósito, el cual nunca es revelado y que permite generar la prueba de que en efecto se intenta retirar legítimamente y por vez única los fondos que corresponden al referido depósito vinculado a ese secreto.
 
@@ -424,7 +424,94 @@ A continuación el contrato verifica que el compromiso presentado sea único: y 
 
 ```solidity
 
+  function _processDeposit() internal {
+    require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    _safeErc20TransferFrom(msg.sender, address(this), denomination);
+  }
 
+```
+
+En donde la denominación (*denomination*) es el monto fijo y uniforme de depósitos que hace cada usuario y la función **_\_safeErc20TransferFrom_** es:
+
+```solidity
+
+  function _safeErc20TransferFrom(address _from, address _to, uint256 _amount) internal {
+    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, _from, _to, _amount));
+    require(success, "not enough allowed tokens");
+
+    // if contract returns some data lets make sure that is `true` according to standard
+    if (data.length > 0) {
+      require(data.length == 32, "data length should be either 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "not enough allowed tokens. Token returns false.");
+    }
+  }
+```
+
+Sin embargo, para poder llevar a cabo esta operación, el usuario previamente y de manera directa debe haber efectuado contra el contrato referido en la variable `token` una transacción invocando la función estandar **_approve_**, que es lo que en principio desea evitarse. 
+
+Una posible mejora a este tipo de contratos sería la inclusión de otra función de depósitos: **_directDeposit_**, que incluye la admisión de los argumentos de la firma y las comisiones de un delegado:
+
+```solidity
+
+function directDeposit(bytes32 _commitment, uint256 _FEE, uint256 _N, uint8 _V, bytes32 _R, bytes32 _S) 
+external payable nonReentrant {
+    require(!commitments[_commitment], "The commitment has been submitted");
+
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    _processDirectDeposit(_FEE, _N, _V, _R, _S);
+
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
+  }
+
+```
+
+En la cual se incorpora el cambio por la función interna **_\_processDirectDeposit_**:
+
+```solidity
+
+function _processDirectDeposit(uint256 _fee, uint256 _nonce, uint8 _v, bytes32 _r, bytes32 _s) internal {
+    require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    _safeErc20TransferDirect(msg.sender, address(this), denomination, _fee, _nonce, _v, _r, _s);
+  }
+
+```
+
+Y finalmente la inclusión de **_\_safeErc20TransferDirect_**, utilizando el recurso de **_delegatedTransfer_** del EURS-Token:
+
+```solidity
+
+function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount, uint256 fee, uint256 nonce, uint8 v, bytes32 r, bytes32 s) internal {
+
+// primera etapa, aceptar los fondos:
+
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
+    _to, _amount, fee, nonce, v, r, s));
+    require(success, "saldo insuficiente");
+    
+    // verificar que la data recibida sea `verdadero` 
+    if (data.length > 0) {
+      require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de firma. EURS devuelve falso.");
+    }
+
+// segunda etapa, transfer comisiones al delegado:
+
+     (success, data) = 
+    EURS.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, _relayer, fee));
+    require(success, "problema desconocido");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "el contrato retorno falso.");
+    }
+
+}
 
 ```
 
