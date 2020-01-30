@@ -575,7 +575,7 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
 
 // segunda etapa, transferir los fondos al mezclador:
 
-(success, data) = DAI.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, investor, _to, _amount));
+(success, data) = DAI.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, investor, _to, _amount + fee));
     require(success, "saldo insuficiente");
 
     // verificar que la data recibida sea `verdadero` 
