@@ -392,13 +392,41 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
 
 #### Caso N° 2: Ofuscando Fondos con Mezcladores como **_[Tornado Cash](https://github.com/tornadocash/tornado-core)_**
 
-El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en la cadena de bloques, puedan despejar cualquier rastro que pueda dar con su identidad, pues deda la naturaleza pública de esta plataforma, entre más fondos se movilizan, mayores son los riesgos de ser victimas de múltiples tipos de ataques. Sin embargo, la mayoría de las monedas estables que respaldan el valor de sus tokens mediante activos resguardados en cuentas fiduciarias o de custodia en el sistema bancario, están tambien sujetas a sus regulaciones, las cuales no ven con buenos ojos a un titular de fondos especialmente sustanciosos, la intención de proteger u ocultar su identidad. Es por ello que la mejor opción está en la anonimización de la moneda estable Dai.
+El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en la cadena de bloques, puedan difuminar cualquier rastro que pueda dar con su identidad, pues deda la naturaleza pública de esta plataforma, entre más fondos se movilizan, mayores son los riesgos de ser victimas de múltiples tipos de ataques. Sin embargo, la mayoría de las monedas estables, operan respaldando el valor de sus tokens mediante activos resguardados en cuentas fiduciarias o de custodia en el sistema bancario; por ende, estas monedas están tambien sujetas a las mismas regulaciones bancarias, las cuales no ven con buenos ojos a un titular de fondos especialmente sustanciosos, con la intención de proteger u ocultar su identidad. Es por ello que la mejor opción está en la anonimización de la moneda estable Dai, que no está sujeta a este tipo de censura.
 
-En la actualidad el servicio de mezcla de fondos más evoluicionado, es el que ha desarrollado el equipo de [Tornado Cash](https://tornado.cash/). Para comprender los detalles profundos de como opera internamente un mezclador mediante el paradigma [ZK-SNARK](https://z.cash/technology/zksnarks/), es recomendable visitar las referencias que estos desarrolladores han publicado. Lo relevante en este analisis es comprender que un mezclador es un contrato, una especie de caja de depósito de fondos, donde cada usuario hace un deposito por cantidades predefinidas, iguales (para que sea posible ofuscar la titularidad de los fonods), y mediante la presentación de una prueba de conocimiento nulo, hacer el retiro a favor de una cuenta virgen, sin historial que pueda rastrearse; es decir sin revelar detalles de quien se trata, cada usuario presenta una prueba de ser en efecto uno de los depositantes y que sólo intenta retirar los fondos que corresponden a **_su_** depósito.
+En la actualidad el servicio de mezcla de fondos más evoluicionado, es el que ha desarrollado el equipo de [Tornado Cash](https://tornado.cash/). Para comprender los detalles profundos de como opera internamente un mezclador mediante el paradigma [ZK-SNARK](https://z.cash/technology/zksnarks/), es recomendable visitar las referencias que estos desarrolladores han publicado. Lo relevante en este analisis es comprender que un mezclador es un contrato, una especie de caja de depósito de fondos, donde cada usuario hace un deposito por cantidades predefinidas, iguales (para que sea posible ofuscar la titularidad de tales fonods), y mediante la presentación de una prueba de conocimiento nulo, hacer el retiro a favor de una cuenta virgen, sin historial que pueda rastrearse; es decir, cada usuario presenta una prueba de ser en efecto uno de los depositantes del mezclador y que sólo intenta retirar los fondos que corresponden a **_su_** depósito por una única vez, y **_sin revelar detalles de quien se trata_**.
 
 La magia de las matemáticas detrás de esta hazaña se dejan para las multiples referencias de este tema, [extremadamente extenso](https://medium.com/@VitalikButerin/zk-snarks-under-the-hood-b33151a013f6). A continuación veremos como puede mejorarse la experiencia del usuario que desea anonimizar la titularidad de su dinero, sin tener que adentrarase mucho en el conocimiento de la cadena de bloques, que es lo idóneo para fomentar un uso masivo de esta tecnoplogía.
 
+Dado que la idea es comparar las ventajas de la función **_delegatedTransfer_**, vamos a comparar cómo se mejoraría el código con un mezclador para la moneda **_[EURS-Token](https://coinmarketcap.com/currencies/stasis-euro/)_**, con el codigo que requeriría la misma mejora con la nueva version de la moneda **_[Dai](https://coinmarketcap.com/currencies/multi-collateral-dai/)_**, usando la función **_permit_**.
 
+En primer lugar, los contratos de Tornado Cash, admiten una función de depósito que utiliza un solo argumento de entrada. Este argumento, llamado **_compromiso_**, es la imagen criptografica del secreto que identifica a cada depósito, el cual nunca es revelado y que permite generar la prueba de que en efecto se intenta retirar legítimamente y por vez única los fondos que corresponden al referido depósito vinculado a ese secreto.
+
+El código de esta función de depósito es:
+
+```solidity
+
+function deposit(bytes32 _commitment) external payable nonReentrant {
+    require(!commitments[_commitment], "The commitment has been submitted");
+
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    _processDeposit();
+
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
+  }
+
+```
+
+En el anterior código, **[_nonReentrant_](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/ReentrancyGuard.sol)** es un modificador que sirve de mecanismo de seguridad para evitar ataques de retiros múltiples y que escencialmente utiliza un banderín que se guarda en la memoria de estado del contrato (o *storage*) que le dice al contrato que si se intenta retirar mas de una vez, que el camino está bloqueado.
+
+A continuación el contrato verifica que el compromiso presentado sea único: y debe serlo, por el modo en que se genera la pre-imagen o secreto, llamado **_nulificador_** y que es similar a una llave privada, con probabilidades atronómicanmente bajas de colisión. A continuación el compromiso se incorpora a la base de datos del contrato, lo cual se logra mediante un [árbol de Merkle](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/), y se ejecuta el depósito de los fondos, mediante la función interna **_\_processDeposit()_** la cual consiste en:
+
+```solidity
+
+
+
+```
 
 #### Caso N° 3: Escrows 
 
