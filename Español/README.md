@@ -392,9 +392,9 @@ function Financiar (uint8 _v, bytes32 _r, bytes32 _s, uint256 _value, uint256 _n
 
 #### Caso N° 2: Ofuscando Fondos con Mezcladores como **_[Tornado Cash](https://github.com/tornadocash/tornado-core)_**
 
-El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en la cadena de bloques, puedan difuminar cualquier rastro que pueda dar con su identidad, pues deda la naturaleza pública de esta plataforma, entre más fondos se movilizan, mayores son los riesgos de ser victimas de múltiples tipos de ataques. Sin embargo, la mayoría de las monedas estables, operan respaldando el valor de sus tokens mediante activos resguardados en cuentas fiduciarias o de custodia en el sistema bancario; por ende, estas monedas están tambien sujetas a las mismas regulaciones bancarias, las cuales no ven con buenos ojos a un titular de fondos especialmente sustanciosos, con la intención de proteger u ocultar su identidad. Es por ello que la mejor opción está en la anonimización de la moneda estable Dai, que no está sujeta a este tipo de censura.
+El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en la cadena de bloques, puedan difuminar cualquier rastro que pueda dar con su identidad, pues dada la naturaleza pública de esta plataforma, entre más fondos se movilizan, mayores son los riesgos de ser victimas de múltiples tipos de ataques. Sin embargo, la mayoría de las monedas estables, operan respaldando el valor de sus tokens mediante activos resguardados en cuentas fiduciarias o de custodia en el sistema bancario; por ende, estas monedas están tambien sujetas a las mismas regulaciones bancarias, las cuales no ven con buenos ojos a un titular de fondos especialmente sustanciosos, con la intención de proteger u ocultar su identidad. Es por ello que la mejor opción está en la anonimización de la moneda estable Dai, que no está sujeta a este tipo de censura.
 
-En la actualidad el servicio de mezcla de fondos más evoluicionado, es el que ha desarrollado el equipo de [Tornado Cash](https://tornado.cash/). Para comprender los detalles profundos de como opera internamente un mezclador mediante el paradigma [ZK-SNARK](https://z.cash/technology/zksnarks/), es recomendable visitar las referencias que estos desarrolladores han publicado. Lo relevante en este analisis es comprender que un mezclador es un contrato, una especie de caja de depósito de fondos, donde cada usuario hace un deposito por cantidades predefinidas, iguales (para que sea posible ofuscar la titularidad de tales fonods), y mediante la presentación de una prueba de conocimiento nulo, hacer el retiro a favor de una cuenta virgen, sin historial que pueda rastrearse; es decir, cada usuario presenta una prueba de ser en efecto uno de los depositantes del mezclador y que sólo intenta retirar los fondos que corresponden a **_su_** depósito por una única vez, y **_sin revelar detalles de quien se trata_**.
+En la actualidad el servicio de mezcla de fondos más evoluicionado, es el que ha desarrollado el equipo de [Tornado Cash](https://tornado.cash/). Para comprender los detalles profundos de como opera internamente un mezclador mediante el paradigma [ZK-SNARK](https://z.cash/technology/zksnarks/), es recomendable visitar las referencias que estos desarrolladores han publicado. Lo relevante en este analisis es comprender que un mezclador es un contrato, una especie de caja de depósito de fondos **_sin custodia_** (es decir, los fondos no están en *manos* de nadie), donde cada usuario hace un deposito por cantidades predefinidas, iguales (para que sea posible ofuscar la titularidad de tales fonods), y mediante la presentación de una prueba de conocimiento nulo, hacer el retiro a favor de una cuenta virgen, sin historial que pueda rastrearse; es decir, cada usuario presenta una prueba de ser en efecto uno de los depositantes del mezclador y que sólo intenta retirar los fondos que corresponden a **_su_** depósito por una única vez, y **_sin revelar detalles de quien se trata_**.
 
 La magia de las matemáticas detrás de esta hazaña se dejan para las multiples referencias de este tema, [extremadamente extenso](https://medium.com/@VitalikButerin/zk-snarks-under-the-hood-b33151a013f6). A continuación veremos como puede mejorarse la experiencia del usuario que desea anonimizar la titularidad de su dinero, sin tener que adentrarase mucho en el conocimiento de la cadena de bloques, que es lo idóneo para fomentar un uso masivo de esta tecnología.
 
@@ -487,8 +487,7 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
 // primera etapa, aceptar los fondos:
 
     (bool success, bytes memory data) = 
-    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, 
-    _to, _amount, fee, nonce, v, r, s));
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, _to, _amount, fee, nonce, v, r, s));
     require(success, "saldo insuficiente");
     
     // verificar que la data recibida sea `verdadero` 
@@ -512,6 +511,94 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
     }
 
 }
+
+```
+
+En donde EURS es la variable que hace referencia al contrato de EURS-Token: `0xdB25f211AB05b1c97D595516F45794528a807ad8`.
+
+Con una ligera carga adicional, esto mismo puede realizarse para el contrato Dai: `0x6B175474E89094C44Da98b954EedeAC495271d0F`, mediante la función **_permit_**, cuyo contenido es:
+
+```solidity
+
+function permit(address holder, address spender, uint256 nonce, uint256 expiry, bool allowed, uint8 v, bytes32 r, bytes32 s) external
+    {
+        bytes32 digest =
+            keccak256(abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(PERMIT_TYPEHASH,
+                                     holder,
+                                     spender,
+                                     nonce,
+                                     expiry,
+                                     allowed))
+        ));
+
+        require(holder != address(0), "Dai/invalid-address-0");
+        require(holder == ecrecover(digest, v, r, s), "Dai/invalid-permit");
+        require(expiry == 0 || now <= expiry, "Dai/permit-expired");
+        require(nonce == nonces[holder]++, "Dai/invalid-nonce");
+        uint wad = allowed ? uint(-1) : 0;
+        allowance[holder][spender] = wad;
+        emit Approval(holder, spender, wad);
+    }
+
+```
+
+La cual simplemente permite delegar la aprobación de uso delegado de fondos, durante un plazo de tiempo que puede ser indefinido y por una cantidad de fondos que toca el extremo del valor máximo para uint256. Una de las desventajas de **_permit_** es que necesariamente hay que añadir como parte de los argumentos a la dirección del inversionista, ya que al estar referida en la construcción de la firma, este dato no se puede "deducir" tal como si es posible en el estándar de "**_delegatedTransfer_**".
+
+Por ende la función **_directDeposit_** debe ir declarada del siguiente modo:
+
+```solidity
+function directDeposit(bytes32 _commitment, address INVESTOR, uint256 _FEE, uint256 _N, uint8 _V, bytes32 _R, bytes32 _S) 
+external payable nonReentrant { }
+```
+
+La función interna `_processDirectDeposit(INVESTOR, _FEE, _N, _V, _R, _S);` también debe incluir el nuevo parámetro y finalmente para incorporar esta estrategia de depósito delegado con el contrato Dai, se modifica **_\_safeErc20TransferDirect_** invocándola del siguiente modo: `_safeErc20TransferDirect(msg.sender, address(this), denomination, _investor, _fee, _nonce, _v, _r, _s);` y definiendola como sigue:
+
+```solidity
+
+function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount, address investor, uint256 fee, uint256 nonce, uint8 v, bytes32 r, bytes32 s) internal {
+
+// primera etapa, modificar 'allow':
+
+    (bool success, bytes memory data) = 
+    DAI.call(abi.encodeWithSelector(0x80c33b34 /* permit */, investor, _to, nonce, 0 /* para no dejar que el ajuste expire */ , true /* el booleano "allowed" */, v, r, s));
+    require(success, "problemas de firma");
+
+    // verificar que la data recibida sea `verdadero` 
+    if (data.length > 0) {
+      require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de firma. EURS devuelve falso.");
+    }
+
+// segunda etapa, transferir los fondos al mezclador:
+
+(success, data) = DAI.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, investor, _to, _amount));
+    require(success, "saldo insuficiente");
+
+    // verificar que la data recibida sea `verdadero` 
+    if (data.length > 0) {
+      require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "problemas de firma. EURS devuelve falso.");
+    }
+    
+// tercera etapa, transfer comisiones al delegado:
+
+     (success, data) = 
+    DAI.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, _relayer, fee));
+    require(success, "problema desconocido");
+        
+    // el contrato debe retornar verdadero.
+    if (data.length > 0) {
+      require(data.length == 32, "la extencion de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "el contrato retorno falso.");
+    }
+
+  }
 
 ```
 
