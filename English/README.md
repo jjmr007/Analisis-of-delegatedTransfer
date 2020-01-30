@@ -294,6 +294,8 @@ contract Token is ERC20 {
         balanceOf[_investor] += _value;
         totalSupply          += _value;
         emit Transfer(address(0), _investor, _value);
+
+      return true;
         
     }
 
