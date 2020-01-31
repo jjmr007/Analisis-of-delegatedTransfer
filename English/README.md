@@ -605,3 +605,8 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
 
 Actually, this last function would only need to be executed once. After that, the mixer is authorized to carry out delegated fund mobilizations of this Dai token, for which the normal function "**_deposit_**" can be invoked without having to worry more about "**_approve_**".
 
+**iv.- How to Generate a Signature (v, r, s)?**. The solution that **_delegatedTransfer_** brings to us, comes with some complications. While it is true that it can save to the user one transaction, in cases where this user does not have ethers and will not pay for the gas of any transaction, he must rely on some back-end platform.
+
+The `approve` +` transferFrom` standard does not need a back-end platform -although it can be used- : since the user must necessarily interact directly with the contract, he must pay for the gasoline and it will be enough for the Dapp in use the implementing of the standard in the user interface or front-end.
+
+In any case, the use of functions such as "**_permit_**" or "**_delegatedTransfer_**" must first produce a signature and consult the nonce number that the user has in the token's contract.
