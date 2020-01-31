@@ -402,3 +402,48 @@ Since the idea is to compare the advantages of the function **_delegatedTransfer
 First, Tornado Cash contracts support a deposit function that uses a single input argument. This argument, called **_commitment_**, is the cryptographic image of the secret that identifies each deposit, which is never disclosed and that allows us to generate the proof that in fact we're trying a legitimately and unique withdraw the funds that correspond to the referred deposit linked to that secret.
 
 The code of this deposit function is:
+
+```solidity
+
+function deposit(bytes32 _commitment) external payable nonReentrant {
+    require(!commitments[_commitment], "The commitment has been submitted");
+
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    _processDeposit();
+
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
+  }
+
+```
+
+In the previous code, **[_nonReentrant_](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/ReentrancyGuard.sol)** is a modifier that serves as a safety mechanism to avoid reentrancy attacks and that essentially uses a flag that is stored in the contract's *storage* memory that tells to the contract that if you try a withdraw more than once, the road is blocked.
+
+The contract then verifies that the given commitment is unique: and it must be so, due to the way in which the pre-image or secret (called **_nullifier_**) is generated,  and that it is similar to a private key, with astronomically low probabilities of collision. The commitment is then incorporated into the contract database, which is achieved through a [Merkle tree](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/), and the deposit of the funds is executed, through the internal function **_\_processDeposit()_** which consists of:
+
+```solidity
+
+  function _processDeposit() internal {
+    require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    _safeErc20TransferFrom(msg.sender, address(this), denomination);
+  }
+
+```
+
+Where "*denomination*" is the fixed and uniform amount of deposits made by each user and the function **_\_safeErc20TransferFrom_** is:
+
+```solidity
+
+  function _safeErc20TransferFrom(address _from, address _to, uint256 _amount) internal {
+    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, _from, _to, _amount));
+    require(success, "not enough allowed tokens");
+
+    // if contract returns some data lets make sure that is `true` according to standard
+    if (data.length > 0) {
+      require(data.length == 32, "data length should be either 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "not enough allowed tokens. Token returns false.");
+    }
+  }
+```
+
