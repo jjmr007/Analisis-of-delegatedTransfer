@@ -447,3 +447,104 @@ Where "*denomination*" is the fixed and uniform amount of deposits made by each 
   }
 ```
 
+However, in order to carry out this operation, the user must previously and directly carry out a transaction against the contract referred to in the `token` variable by invoking the standard function **_approve_**, which is what in principle we want to avoid.
+
+A possible improvement to this type of contract would be the inclusion of another deposit function: **_directDeposit_**, which includes the admission of the signature's arguments and the commissions to a delegate:
+
+```solidity
+
+function directDeposit(bytes32 _commitment, uint256 _FEE, uint256 _N, uint8 _V, bytes32 _R, bytes32 _S) 
+external payable nonReentrant {
+    require(!commitments[_commitment], "The commitment has been submitted");
+
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    _processDirectDeposit(_FEE, _N, _V, _R, _S);
+
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
+  }
+
+```
+
+In which we implement a change by the internal function **_\_processDirectDeposit_**:
+
+```solidity
+
+function _processDirectDeposit(uint256 _fee, uint256 _nonce, uint8 _v, bytes32 _r, bytes32 _s) internal {
+    require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    _safeErc20TransferDirect(msg.sender, address(this), denomination, _fee, _nonce, _v, _r, _s);
+  }
+
+```
+
+And finally the inclusion of **_\_safeErc20TransferDirect_**, using the resource of **_delegatedTransfer_** of the EURS-Token:
+
+```solidity
+
+function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount, uint256 fee, uint256 nonce, uint8 v, bytes32 r, bytes32 s) internal {
+
+// first stage, accept the funds:
+
+    (bool success, bytes memory data) = 
+    EURS.call(abi.encodeWithSelector(0x8c2f634a /* delegatedTransfer */, _to, _amount, fee, nonce, v, r, s));
+    require(success, "not enough balance");
+    
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+
+// second stage, transfer the fee to the relayer:
+
+     (success, data) = 
+    EURS.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, _relayer, fee));
+    require(success, "unknown problem");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+
+}
+
+```
+
+Where EURS is the variable that refers to the EURS-Token contract: `0xdB25f211AB05b1c97D595516F45794528a807ad8`.
+
+With a slight additional load, the same can be done for the Dai contract: `0x6B175474E89094C44Da98b954EedeAC495271d0F`, by means of the function **_permit_**, whose content is:
+
+
+```solidity
+
+function permit(address holder, address spender, uint256 nonce, uint256 expiry, bool allowed, uint8 v, bytes32 r, bytes32 s) external
+    {
+        bytes32 digest =
+            keccak256(abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(PERMIT_TYPEHASH,
+                                     holder,
+                                     spender,
+                                     nonce,
+                                     expiry,
+                                     allowed))
+        ));
+
+        require(holder != address(0), "Dai/invalid-address-0");
+        require(holder == ecrecover(digest, v, r, s), "Dai/invalid-permit");
+        require(expiry == 0 || now <= expiry, "Dai/permit-expired");
+        require(nonce == nonces[holder]++, "Dai/invalid-nonce");
+        uint wad = allowed ? uint(-1) : 0;
+        allowance[holder][spender] = wad;
+        emit Approval(holder, spender, wad);
+    }
+
+```
+
+Which simply allows delegating the approval of delegated use of funds, for a period of time that can be undefined and for an amount of funds that hit the the maximum value for uint256. One of the disadvantages of **_permit_** is that it is necessary to add as part of the arguments, the actual address of the investor, since being referred to in the construction of the signature, this data cannot be "deducted" as if it is possible in the standard of "**_delegatedTransfer_**".
+
+Therefore, in this case the function **_directDeposit_** must be declared as follows:
