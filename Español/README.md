@@ -420,7 +420,7 @@ function deposit(bytes32 _commitment) external payable nonReentrant {
 
 En el anterior código, **[_nonReentrant_](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/ReentrancyGuard.sol)** es un modificador que sirve de mecanismo de seguridad para evitar ataques de retiros múltiples y que escencialmente utiliza un banderín que se guarda en la memoria de estado del contrato (o *storage*) que le dice al contrato que si se intenta retirar mas de una vez, que el camino está bloqueado.
 
-A continuación el contrato verifica que el compromiso presentado sea único: y debe serlo, por el modo en que se genera la pre-imagen o secreto, llamado **_nulificador_** y que es similar a una llave privada, con probabilidades atronómicanmente bajas de colisión. A continuación el compromiso se incorpora a la base de datos del contrato, lo cual se logra mediante un [árbol de Merkle](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/), y se ejecuta el depósito de los fondos, mediante la función interna **_\_processDeposit()_** la cual consiste en:
+A continuación el contrato verifica que el compromiso presentado sea único: y debe serlo, por el modo en que se genera la pre-imagen o secreto, llamado **_nulificador_** y que es similar a una llave privada, con probabilidades astronómicanmente bajas de colisión. A continuación el compromiso se incorpora a la base de datos del contrato, lo cual se logra mediante un [árbol de Merkle](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/), y se ejecuta el depósito de los fondos, mediante la función interna **_\_processDeposit()_** la cual consiste en:
 
 ```solidity
 
