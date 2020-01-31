@@ -548,3 +548,56 @@ function permit(address holder, address spender, uint256 nonce, uint256 expiry, 
 Which simply allows delegating the approval of delegated use of funds, for a period of time that can be undefined and for an amount of funds that hit the the maximum value for uint256. One of the disadvantages of **_permit_** is that it is necessary to add as part of the arguments, the actual address of the investor, since being referred to in the construction of the signature, this data cannot be "deducted" as if it is possible in the standard of "**_delegatedTransfer_**".
 
 Therefore, in this case the function **_directDeposit_** must be declared as follows:
+
+```solidity
+function directDeposit(bytes32 _commitment, address INVESTOR, uint256 _FEE, uint256 _N, uint8 _V, bytes32 _R, bytes32 _S) 
+external payable nonReentrant { }
+```
+
+The internal function `_processDirectDeposit(INVESTOR, _FEE, _N, _V, _R, _S);` must also include the new parameter and finally to incorporate this delegated deposit strategy with the Dai contract, it is modified **_\_safeErc20TransferDirect_** invoking it as follows: `_safeErc20TransferDirect(msg.sender, address(this), denomination, _investor, _fee, _nonce, _v, _r, _s);` and defining it as follows:
+
+```solidity
+
+function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount, address investor, uint256 fee, uint256 nonce, uint8 v, bytes32 r, bytes32 s) internal {
+
+// first stage, modify the 'allow' state:
+
+    (bool success, bytes memory data) = 
+    DAI.call(abi.encodeWithSelector(0x80c33b34 /* permit */, investor, _to, nonce, 0 /* to avoid expiration */ , true /* the boolean value for "allowed" */, v, r, s));
+    require(success, "signature problems");
+
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "signature problems. DAI contract returned false.");
+    }
+
+// second stage, transfering the funds to the mixer:
+
+(success, data) = DAI.call(abi.encodeWithSelector(0x23b872dd /* transferFrom */, investor, _to, _amount + fee));
+    require(success, "not enough balance");
+
+    // verificar que la data recibida sea `verdadero` 
+    if (data.length > 0) {
+      require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "not enough balance. DAI returned false.");
+    }
+    
+// third stage, transfering fees to the relayer:
+
+     (success, data) = 
+    DAI.call(abi.encodeWithSelector(0xa9059cbb /* transfer */, _relayer, fee));
+    require(success, "unknown problem");
+        
+    // the contract must return true.
+    if (data.length > 0) {
+      require(data.length == 32, "the data extension must be 0 or 32 bytes");
+      success = abi.decode(data, (bool));
+      require(success, "the contract returned false.");
+    }
+
+  }
+
+```
