@@ -397,7 +397,7 @@ Currently, the most evolved fund mix service is the one developed by the [Tornad
 
 The magics of the mathematics behind this feat is left for multiple references on this subject, [extremely extensive](https://medium.com/@VitalikButerin/zk-snarks-under-the-hood-b33151a013f6). Next we will see how the user experience that wishes to anonymize the ownership of their money can be improved, without having to delve much into the knowledge of the blockchain, which is ideal for promoting a massive use of this technology.
 
-Since the idea is to compare the advantages of the function **_delegatedTransfer_**, we will see how the code would be improved with a mixer for the currency **_[EURS-Token](https://coinmarketcap.com/currencies/stasis- euro/)_**, and then with the new version of the currency **_[Dai](https://coinmarketcap.com/currencies/multi-collateral-dai/)_**, using the function **_permit_**.
+Since the idea is to compare the advantages of the function **_delegatedTransfer_**, we will see how the code would be improved with a mixer for the currency **_[EURS-Token](https://coinmarketcap.com/currencies/stasis-euro/)_**, and then with the new version of the currency **_[Dai](https://coinmarketcap.com/currencies/multi-collateral-dai/)_**, using the function **_permit_**.
 
 First, Tornado Cash contracts support a deposit function that uses a single input argument. This argument, called **_commitment_**, is the cryptographic image of the secret that identifies each deposit, which is never disclosed and that allows us to generate the proof that in fact we're trying a legitimately and unique withdraw the funds that correspond to the referred deposit linked to that secret.
 
