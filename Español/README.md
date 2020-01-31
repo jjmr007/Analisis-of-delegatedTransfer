@@ -570,7 +570,7 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
     if (data.length > 0) {
       require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
       success = abi.decode(data, (bool));
-      require(success, "problemas de firma. EURS devuelve falso.");
+      require(success, "problemas de firma. DAI devuelve falso.");
     }
 
 // segunda etapa, transferir los fondos al mezclador:
@@ -582,7 +582,7 @@ function _safeErc20TransferDirect(address _relayer, address _to, uint256 _amount
     if (data.length > 0) {
       require(data.length == 32, "la extension de datos debe ser 0 o 32 bytes");
       success = abi.decode(data, (bool));
-      require(success, "problemas de firma. EURS devuelve falso.");
+      require(success, "DAI devuelve falso.");
     }
     
 // tercera etapa, transfer comisiones al delegado:
