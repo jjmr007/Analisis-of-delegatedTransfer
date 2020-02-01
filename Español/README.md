@@ -609,6 +609,13 @@ En realidad, esta ultima función sólo haría falta ejecutarla una sola vez. De
 
 El estándar `approve` + `transferFrom` aunque la puede utilizar, no necesita de una plataforma back-end: dado que el usuario necesariamente debe interactuar de manera directa con el contrato, debe costear la gasolina y bastará con que la Dapp en uso, implemente el estándar en la interfaz de usuario o front-end.
 
-En todo caso, el uso de funciones como "**_permit_**" o "**_delegatedTransfer_**" tienen que producir previamente una firma y consultar el número nonce que el usuario posee en el contrato del token.
+En todo caso, el uso de funciones como "**_permit_**" o "**_delegatedTransfer_**" tienen que producir previamente una firma y consultar el número nonce que el usuario posee en el contrato del token. A menudo cuando se trabaja en el desarrollo de un proyecto, es conveniente acceder a cálculos de prueba. Por ello, una de las primeras formas de generar la firma para **_delegatedTransfer_** que vamos a revisar, es utilizando [Remix](https://remix.ethereum.org/) y [Metamask](https://metamask.io/).
 
+Otro de los modos de generar una firma es creando nuestra propia calculadora, con un sencillo desarrollo front-end local instalado en nuestra porpia PC. Veremos como es esto posible, utilizando la libreria [web3.js](https://web3js.readthedocs.io/en/v1.2.4/index.html).
+
+Finalmente veremos como puede programarse este cálculo para una aplicación local o para un servidor, mediante la aplicación de [python](https://www.python.org/downloads/) y de [web3.py](https://web3py.readthedocs.io/en/stable/quickstart.html) junto con las librerias [eth-keys](https://github.com/ethereum/eth-keys), [coincurve](https://github.com/ofek/coincurve) y [eth-account](https://github.com/ethereum/eth-account).
+
+#### i: Generar una Firma Utilizando **_[Remix](https://remix.ethereum.org/)_**
+
+El objetivo de un mezclador es ayudar a que los usuarios que movilizan fondos en la cadena de bloques, puedan difuminar cualquier rastro que pueda dar con su identidad, pues dada la naturaleza pública de esta plataforma, entre más fondos se movilizan, mayores son los riesgos de ser victimas de múltiples tipos de ataques. Sin embargo, la mayoría de las monedas estables, operan respaldando el valor de sus tokens mediante activos resguardados en cuentas fiduciarias o de custodia en el sistema bancario; por ende, estas monedas están tambien sujetas a las mismas regulaciones bancarias, las cuales no ven con buenos ojos a un titular de fondos especialmente sustanciosos, con la intención de proteger u ocultar su identidad. Es por ello que la mejor opción está en la anonimización de la moneda estable Dai, que no está sujeta a este tipo de censura.
 
